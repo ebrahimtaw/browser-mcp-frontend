@@ -2,31 +2,49 @@
 import { motion } from "framer-motion";
 import { useState } from "react";
 
+// Define the exact shape of API response
+interface APIResponse {
+  response?: string;
+  message?: string;
+}
+
 export default function Home() {
-  const [command, setCommand] = useState("");
-  const [response, setResponse] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [command, setCommand] = useState<string>("");
+  const [response, setResponse] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(false);
 
   async function runCommand() {
     setLoading(true);
     setResponse("");
-    try {
-      // Use correct variable name (matches your .env.local)
-      const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL;
 
-      // Correct endpoint: /run instead of /run_agent
-      const res = await fetch(`${API_BASE}/run`, {
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+      if (!apiUrl) {
+        throw new Error("NEXT_PUBLIC_API_URL is not defined");
+      }
+
+      const res = await fetch(`${apiUrl}/run_agent`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: command }),
       });
 
-      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(`API responded with status ${res.status}`);
+      }
 
-      // Handle possible variations in backend response
-      setResponse(data.response || data.message || JSON.stringify(data, null, 2));
-    } catch (err: any) {
-      setResponse("Error: " + err.message);
+      const data: APIResponse = await res.json();
+
+      // Safe nullish handling with ?? operator
+      const output = data.response ?? data.message ?? "No response received.";
+      setResponse(output);
+    } catch (err: unknown) {
+      // Type-safe error handling
+      if (err instanceof Error) {
+        setResponse(`Error: ${err.message}`);
+      } else {
+        setResponse("An unexpected error occurred.");
+      }
     } finally {
       setLoading(false);
     }
