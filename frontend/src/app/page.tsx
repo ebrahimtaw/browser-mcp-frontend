@@ -11,13 +11,20 @@ export default function Home() {
     setLoading(true);
     setResponse("");
     try {
-      const res = await fetch(process.env.NEXT_PUBLIC_API_URL + "/run_agent", {
+      // Use correct variable name (matches your .env.local)
+      const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL;
+
+      // Correct endpoint: /run instead of /run_agent
+      const res = await fetch(`${API_BASE}/run`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: command }),
       });
+
       const data = await res.json();
-      setResponse(data.response);
+
+      // Handle possible variations in backend response
+      setResponse(data.response || data.message || JSON.stringify(data, null, 2));
     } catch (err: any) {
       setResponse("Error: " + err.message);
     } finally {
