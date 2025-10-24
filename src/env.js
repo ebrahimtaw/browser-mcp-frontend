@@ -7,12 +7,12 @@ export const env = createEnv({
   },
 
   client: {
-    NEXT_PUBLIC_API_URL: z.string().url(), // ✅ Add this line
+    NEXT_PUBLIC_API_URL: z.string().url(),
   },
 
   runtimeEnv: {
     NODE_ENV: process.env.NODE_ENV,
-    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL, // ✅ Add this line
+    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
   },
 
   skipValidation: !!process.env.SKIP_ENV_VALIDATION,
