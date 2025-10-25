@@ -2,24 +2,36 @@
 import { motion } from "framer-motion";
 import { useState } from "react";
 
-export default function Home() {
-  const [command, setCommand] = useState("");
-  const [response, setResponse] = useState("");
-  const [loading, setLoading] = useState(false);
+interface AgentResponse {
+  response: string;
+}
 
-  async function runCommand() {
+export default function Home() {
+  const [command, setCommand] = useState<string>("");
+  const [response, setResponse] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(false);
+
+  async function runCommand(): Promise<void> {
     setLoading(true);
     setResponse("");
+
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/run_agent`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: command }),
       });
-      const data = await res.json();
-      setResponse(data.response);
-    } catch (err: any) {
-      setResponse("Error: " + err.message);
+
+      if (!res.ok) {
+        throw new Error(`Request failed with status ${res.status}`);
+      }
+
+      const data: AgentResponse = await res.json();
+      setResponse(data.response || "No response received from the agent.");
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : "An unknown error occurred.";
+      setResponse(`Error: ${errorMessage}`);
     } finally {
       setLoading(false);
     }
