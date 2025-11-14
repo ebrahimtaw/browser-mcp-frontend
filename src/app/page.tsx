@@ -2,48 +2,25 @@
 import { motion } from "framer-motion";
 import { useState } from "react";
 
-interface AgentResponse {
-  response: string;
-}
-
 export default function Home() {
-  const [command, setCommand] = useState<string>("");
-  const [response, setResponse] = useState<string>("");
-  const [loading, setLoading] = useState<boolean>(false);
+  const [command, setCommand] = useState("");
+  const [response, setResponse] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  async function runCommand(): Promise<void> {
+  async function runCommand() {
     setLoading(true);
     setResponse("");
-
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/run_agent`, {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+      const res = await fetch(`${apiUrl}/run_agent`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: command }),
       });
-
-      if (!res.ok) {
-        throw new Error(`Request failed with status ${res.status}`);
-      }
-
-      // fixing the ESLint unsafe assignment by using`unknown` first, then cast safely
-      const data = (await res.json()) as unknown;
-
-      // validate shape before using
-      if (
-        typeof data === "object" &&
-        data !== null &&
-        "response" in data &&
-        typeof (data as { response: unknown }).response === "string"
-      ) {
-        setResponse((data as AgentResponse).response);
-      } else {
-        throw new Error("Invalid response format from backend");
-      }
-    } catch (err) {
-      const errorMessage =
-        err instanceof Error ? err.message : "An unknown error occurred.";
-      setResponse(`Error: ${errorMessage}`);
+      const data = await res.json();
+      setResponse(data.response);
+    } catch (err: any) {
+      setResponse("Error: " + err.message);
     } finally {
       setLoading(false);
     }
