@@ -20,6 +20,7 @@ export default function Home() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: command }),
+        signal: AbortSignal.timeout(90000), // this is the 90sec request (longer)
       });
       const data = (await res.json()) as AgentResponse;
       setResponse(data.response);
